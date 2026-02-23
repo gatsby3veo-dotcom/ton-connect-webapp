@@ -4,17 +4,6 @@
   <meta charset="UTF-8" />
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      font-family: Arial;
-    }
-  </style>
 </head>
 <body>
 
@@ -31,9 +20,8 @@
 
   tonConnectUI.onStatusChange(wallet => {
     if (wallet) {
-      tg.sendData(JSON.stringify({
-        wallet: wallet.account.address
-      }));
+      tg.sendData(JSON.stringify({ wallet: wallet.account.address }));
+      tg.close(); // ✅ закрываем WebApp сразу после отправки данных в бота
     }
   });
 </script>
