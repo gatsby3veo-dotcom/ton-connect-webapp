@@ -18,10 +18,21 @@
     buttonRootId: 'ton-connect'
   });
 
+  // ✅ Закрываем WebApp только если юзер инициировал подключение
+  let userInitiated = false;
+
+  // Перехватываем клик по кнопке внутри ton-connect контейнера
+  document.getElementById('ton-connect').addEventListener('click', () => {
+    userInitiated = true;
+  });
+
   tonConnectUI.onStatusChange(wallet => {
     if (wallet) {
+      // Если кошелек уже был подключен ранее — НЕ закрываем сразу
+      if (!userInitiated) return;
+
       tg.sendData(JSON.stringify({ wallet: wallet.account.address }));
-      tg.close(); // ✅ закрываем WebApp сразу после отправки данных в бота
+      tg.close();
     }
   });
 </script>
