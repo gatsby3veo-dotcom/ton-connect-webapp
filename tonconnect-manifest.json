@@ -1,5 +1,5 @@
 {
-  "name": "My Telegram Mini App",
   "url": "https://ton-connect-webapp.vercel.app/",
-  "iconUrl": "https://ton-connect-webapp.vercel.app//icon.png"
+  "name": "My Telegram Mini App",
+  "iconUrl": "https://ton-connect-webapp.vercel.app/icon.png"
 }
