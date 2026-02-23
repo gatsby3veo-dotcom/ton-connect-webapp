@@ -1,41 +1,72 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
 <body>
+  <div style="font-family: Arial; padding: 16px;">
+    <h3>TON Connect</h3>
 
-<div id="ton-connect"></div>
+    <!-- Тут будет стандартная кнопка (можно оставить, но мы будем использовать нашу) -->
+    <div id="ton-connect" style="margin-bottom: 12px;"></div>
 
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
+    <!-- ✅ Наша кнопка: по клику открываем модалку и ставим флаг -->
+    <button id="connectBtn" style="padding: 12px 16px; font-size: 16px;">
+      🔗 Подключить кошелек
+    </button>
 
-  const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-    manifestUrl: window.location.origin + '/tonconnect-manifest.json',
-    buttonRootId: 'ton-connect'
-  });
+    <!-- Если кошелек уже подключен ранее — покажем и дадим кнопку отправить в бота -->
+    <div id="already" style="margin-top: 14px; display:none;">
+      <div>✅ Кошелек уже подключен:</div>
+      <div id="addr" style="word-break: break-all; margin: 8px 0;"></div>
+      <button id="useBtn" style="padding: 12px 16px; font-size: 16px;">
+        ✅ Использовать этот кошелек
+      </button>
+    </div>
+  </div>
 
-  // ✅ Закрываем WebApp только если юзер инициировал подключение
-  let userInitiated = false;
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-  // Перехватываем клик по кнопке внутри ton-connect контейнера
-  document.getElementById('ton-connect').addEventListener('click', () => {
-    userInitiated = true;
-  });
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: window.location.origin + '/tonconnect-manifest.json',
+      buttonRootId: 'ton-connect'
+    });
 
-  tonConnectUI.onStatusChange(wallet => {
-    if (wallet) {
-      // Если кошелек уже был подключен ранее — НЕ закрываем сразу
-      if (!userInitiated) return;
+    let userInitiated = false;
 
-      tg.sendData(JSON.stringify({ wallet: wallet.account.address }));
-      tg.close();
+    // ✅ Клик по нашей кнопке — точно ловится
+    document.getElementById('connectBtn').addEventListener('click', async () => {
+      userInitiated = true;
+      await tonConnectUI.openModal(); // открываем окно выбора кошелька
+    });
+
+    // Если кошелек уже был подключен ранее (кэш) — покажем “использовать”
+    async function showIfAlreadyConnected() {
+      const wallet = tonConnectUI.wallet;
+      if (wallet?.account?.address) {
+        document.getElementById('already').style.display = 'block';
+        document.getElementById('addr').textContent = wallet.account.address;
+      }
     }
-  });
-</script>
 
+    document.getElementById('useBtn').addEventListener('click', () => {
+      const wallet = tonConnectUI.wallet;
+      if (wallet?.account?.address) {
+        tg.sendData(JSON.stringify({ wallet: wallet.account.address }));
+        tg.close();
+      }
+    });
+
+    tonConnectUI.onStatusChange(wallet => {
+      if (wallet?.account?.address) {
+        // После нового подключения (когда юзер инициировал) — отправляем и закрываем
+        if (userInitiated) {
+          tg.sendData(JSON.stringify({ wallet: wallet.account.address }));
+          tg.close();
+        } else {
+          // Если подключено "само" из кэша — просто покажем блок “уже подключен”
+          showIfAlreadyConnected();
+        }
+      }
+    });
+
+    showIfAlreadyConnected();
+  </script>
 </body>
-</html>
