@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>TONBOX</title>
 
 <style>
@@ -12,10 +12,6 @@
   --stroke:rgba(255,255,255,.06);
   --text:rgba(255,255,255,.92);
   --muted:rgba(255,255,255,.55);
-
-  --g1:#262626;
-  --g2:#1e1e1e;
-  --g3:#2a2424;
 }
 
 *{box-sizing:border-box}
@@ -29,19 +25,39 @@ body{
 .app{
   max-width:420px;
   margin:0 auto;
-  padding:20px 16px 40px;
+  padding:30px 16px 40px;
+}
+
+/* Logo block */
+.logo-block{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:30px;
+}
+
+.logo{
+  width:90px;
+  height:90px;
+  border-radius:24px;
+  background:linear-gradient(145deg,#1f1f1f,#232323);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-weight:700;
+  font-size:18px;
 }
 
 /* Wallet */
 .wallet{
-  background:linear-gradient(135deg,#1b1a1a,#202020);
+  background:linear-gradient(145deg,#1b1a1a,#202020);
   border:1px solid var(--stroke);
   border-radius:22px;
   padding:18px;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:24px;
+  margin-bottom:28px;
 }
 
 .wallet-left{
@@ -51,10 +67,17 @@ body{
 }
 
 .avatar{
-  width:44px;
-  height:44px;
-  border-radius:16px;
-  background:linear-gradient(135deg,#2a2a2a,#1f1f1f);
+  width:48px;
+  height:48px;
+  border-radius:18px;
+  background:#2a2a2a;
+  overflow:hidden;
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
 .wallet .label{
@@ -68,17 +91,22 @@ body{
   margin-top:4px;
 }
 
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+
 .btn{
   border:none;
   border-radius:16px;
   padding:10px 16px;
   font-weight:600;
   cursor:pointer;
-  background:linear-gradient(135deg,#2b2b2b,#232323);
+  background:#262626;
   color:white;
 }
 
-/* Section title */
+/* Section */
 .section-title{
   font-size:12px;
   letter-spacing:.6px;
@@ -86,9 +114,8 @@ body{
   margin-bottom:10px;
 }
 
-/* Season card */
 .season{
-  background:linear-gradient(145deg,#1a1a1a,#202020);
+  background:#1b1b1b;
   border:1px solid var(--stroke);
   border-radius:26px;
   padding:20px;
@@ -133,29 +160,6 @@ body{
   margin-top:4px;
   font-weight:600;
 }
-
-.timer{
-  display:flex;
-  gap:8px;
-  margin-bottom:14px;
-}
-
-.tbox{
-  flex:1;
-  background:#1e1e1e;
-  border-radius:14px;
-  padding:8px;
-  text-align:center;
-}
-
-.tbox .num{
-  font-weight:700;
-}
-
-.small{
-  font-size:12px;
-  color:var(--muted);
-}
 </style>
 </head>
 
@@ -163,14 +167,19 @@ body{
 
 <div class="app">
 
-  <!-- Wallet -->
+  <!-- LOGO -->
+  <div class="logo-block">
+    <div class="logo">TONBOX</div>
+  </div>
+
+  <!-- WALLET -->
   <div class="wallet">
     <div class="wallet-left">
-      <div class="avatar"></div>
+      <div class="avatar" id="avatar"></div>
       <div>
         <div class="label">Ваш кошелёк</div>
         <div class="amount">1.23 TON</div>
-        <div class="small">Кошелёк подключен</div>
+        <div class="small" id="username">Кошелёк подключен</div>
       </div>
     </div>
     <button class="btn">Пополнить</button>
@@ -178,7 +187,6 @@ body{
 
   <div class="section-title">СЕЗОНЫ</div>
 
-  <!-- Season 1 -->
   <div class="season">
     <div class="pill">SEASON 1 • ACTIVE</div>
     <h2>Season 1</h2>
@@ -201,26 +209,28 @@ body{
     <button class="btn">Mint Free Box</button>
   </div>
 
-  <!-- Season 2 -->
-  <div class="season">
-    <div class="pill">SEASON 2 • SOON</div>
-    <h2>Season 2</h2>
-
-    <div class="meta">
-      <div class="meta-box">
-        <div class="k">Supply</div>
-        <div class="v">10,000</div>
-      </div>
-      <div class="meta-box">
-        <div class="k">Status</div>
-        <div class="v">Coming Soon</div>
-      </div>
-    </div>
-
-    <button class="btn" style="opacity:.5; cursor:not-allowed;">Скоро</button>
-  </div>
-
 </div>
+
+<!-- Telegram script -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+const user = tg.initDataUnsafe?.user;
+
+if(user){
+  // Username
+  document.getElementById("username").innerText =
+    user.first_name + (user.last_name ? " " + user.last_name : "");
+
+  // Avatar
+  if(user.photo_url){
+    document.getElementById("avatar").innerHTML =
+      '<img src="'+user.photo_url+'" />';
+  }
+}
+</script>
 
 </body>
 </html>
