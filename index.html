@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TONBOX</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>BattleROLL</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -11,32 +11,39 @@
 
 <style>
 :root{
-  --bg:#0b0d12;
-  --cardSoft:#1c1f29;
+  --bg:#0b0f17;
+  --soft:#161b25;
+  --soft2:#1c2230;
   --text:#ffffff;
-  --muted:#8b92a1;
+  --muted:#8e97a8;
   --blue:linear-gradient(135deg,#4da3ff,#3b82f6);
+  --green:linear-gradient(135deg,#22d3a6,#06b6d4);
 }
 
 body{
   margin:0;
-  background:var(--bg);
+  background:radial-gradient(circle at top,#0f1a2a 0%,#0b0f17 60%);
   color:var(--text);
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
+}
+
+/* ===== TOP SECTION ===== */
+
+.top-wrapper{
+  padding:18px 16px 10px;
 }
 
 .topbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:14px 16px;
 }
 
 .balance{
   display:flex;
   align-items:center;
   gap:8px;
-  background:var(--cardSoft);
+  background:var(--soft);
   padding:8px 12px;
   border-radius:14px;
 }
@@ -45,7 +52,7 @@ body{
   width:24px;
   height:24px;
   border-radius:50%;
-  background:#2a2d36;
+  background:#2b3142;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -59,7 +66,7 @@ body{
 
 .plus{
   border:none;
-  background:#2a2d36;
+  background:#2b3142;
   color:white;
   width:22px;
   height:22px;
@@ -68,10 +75,11 @@ body{
 }
 
 .avatar{
-  width:40px;
-  height:40px;
+  width:42px;
+  height:42px;
   border-radius:50%;
   object-fit:cover;
+  box-shadow:0 0 10px rgba(0,0,0,0.6);
 }
 
 .right-block{
@@ -83,7 +91,7 @@ body{
 .wallet-btn{
   background:var(--blue);
   border:none;
-  padding:10px 16px;
+  padding:10px 18px;
   border-radius:18px;
   font-weight:600;
   color:white;
@@ -96,26 +104,78 @@ body{
   color:var(--muted);
   display:none;
 }
+
+/* ===== SEASONS BLOCK ===== */
+
+.seasons{
+  margin-top:20px;
+  display:flex;
+  gap:12px;
+}
+
+.season-card{
+  flex:1;
+  background:var(--soft2);
+  padding:16px;
+  border-radius:18px;
+  cursor:pointer;
+  transition:0.2s;
+  position:relative;
+  overflow:hidden;
+}
+
+.season-card:hover{
+  transform:translateY(-2px);
+  background:#232a3b;
+}
+
+.season-title{
+  font-size:15px;
+  font-weight:600;
+}
+
+.season-sub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="topbar">
-  <div class="balance">
-    <div class="ton-icon">T</div>
-    <span class="amount">0.00</span>
-    <button class="plus">+</button>
+<div class="top-wrapper">
+
+  <div class="topbar">
+    <div class="balance">
+      <div class="ton-icon">T</div>
+      <span class="amount">0.00</span>
+      <button class="plus">+</button>
+    </div>
+
+    <img id="avatar" class="avatar"/>
+
+    <div class="right-block">
+      <button id="walletBtn" class="wallet-btn">
+        Wallet
+      </button>
+      <div id="walletAddr" class="wallet-address"></div>
+    </div>
   </div>
 
-  <img id="avatar" class="avatar" />
+  <!-- SEASONS -->
+  <div class="seasons">
+    <div class="season-card">
+      <div class="season-title">Season 1</div>
+      <div class="season-sub">Active leaderboard</div>
+    </div>
 
-  <div class="right-block">
-    <button id="walletBtn" class="wallet-btn">
-      Кошелек
-    </button>
-    <div id="walletAddr" class="wallet-address"></div>
+    <div class="season-card">
+      <div class="season-title">Season 2</div>
+      <div class="season-sub">Coming soon</div>
+    </div>
   </div>
+
 </div>
 
 <script>
@@ -128,7 +188,7 @@ if(user?.photo_url){
   avatar.src = user.photo_url;
 }
 
-/* ===== TON CONNECT ===== */
+/* TON CONNECT */
 
 const MANIFEST_URL = "https://ton-connect-webapp.vercel.app/tonconnect-manifest.json";
 
@@ -139,33 +199,28 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 const walletBtn = document.getElementById("walletBtn");
 const walletAddr = document.getElementById("walletAddr");
 
-/* ===== ADDRESS CONVERSION ===== */
-
-function toUserFriendly(raw){
+function toFriendly(raw){
   try{
     const address = new TonWeb.utils.Address(raw);
-    return address.toString(true, true, false); 
-    // bounceable=true, urlSafe=true, testOnly=false (mainnet)
-  }catch(e){
+    return address.toString(true, true, false);
+  }catch{
     return raw;
   }
 }
 
 function shorten(addr){
-  if(!addr) return "";
-  return addr.slice(0,4) + "******" + addr.slice(-4);
+  return addr.slice(0,4)+"******"+addr.slice(-4);
 }
 
 function updateUI(wallet){
   if(wallet?.account?.address){
-    const friendly = toUserFriendly(wallet.account.address);
-    walletBtn.textContent = "Отключить";
+    const friendly = toFriendly(wallet.account.address);
+    walletBtn.textContent = "Disconnect";
     walletAddr.style.display = "block";
     walletAddr.textContent = shorten(friendly);
   }else{
-    walletBtn.textContent = "Кошелек";
+    walletBtn.textContent = "Wallet";
     walletAddr.style.display = "none";
-    walletAddr.textContent = "";
   }
 }
 
@@ -177,10 +232,7 @@ walletBtn.addEventListener("click", async ()=>{
   }
 });
 
-tonConnectUI.onStatusChange(wallet=>{
-  updateUI(wallet);
-});
-
+tonConnectUI.onStatusChange(updateUI);
 updateUI(tonConnectUI.wallet);
 </script>
 
