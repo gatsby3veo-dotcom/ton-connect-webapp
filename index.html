@@ -7,11 +7,11 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="https://unpkg.com/tonweb@latest/dist/tonweb.js"></script>
 
 <style>
 :root{
   --bg:#0b0d12;
-  --card:#151821;
   --cardSoft:#1c1f29;
   --text:#ffffff;
   --muted:#8b92a1;
@@ -25,14 +25,11 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
 }
 
-/* ===== TOP BAR ===== */
-
 .topbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
   padding:14px 16px;
-  background:#0b0d12;
 }
 
 .balance{
@@ -127,7 +124,6 @@ if(tg) tg.ready();
 
 const user = tg?.initDataUnsafe?.user;
 const avatar = document.getElementById("avatar");
-
 if(user?.photo_url){
   avatar.src = user.photo_url;
 }
@@ -143,16 +139,29 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 const walletBtn = document.getElementById("walletBtn");
 const walletAddr = document.getElementById("walletAddr");
 
+/* ===== ADDRESS CONVERSION ===== */
+
+function toUserFriendly(raw){
+  try{
+    const address = new TonWeb.utils.Address(raw);
+    return address.toString(true, true, false); 
+    // bounceable=true, urlSafe=true, testOnly=false (mainnet)
+  }catch(e){
+    return raw;
+  }
+}
+
 function shorten(addr){
   if(!addr) return "";
-  return addr.slice(0,4)+"******"+addr.slice(-4);
+  return addr.slice(0,4) + "******" + addr.slice(-4);
 }
 
 function updateUI(wallet){
   if(wallet?.account?.address){
+    const friendly = toUserFriendly(wallet.account.address);
     walletBtn.textContent = "Отключить";
     walletAddr.style.display = "block";
-    walletAddr.textContent = shorten(wallet.account.address);
+    walletAddr.textContent = shorten(friendly);
   }else{
     walletBtn.textContent = "Кошелек";
     walletAddr.style.display = "none";
