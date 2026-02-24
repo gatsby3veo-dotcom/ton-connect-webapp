@@ -3,36 +3,29 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<title>Wallet WebApp</title>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
+<title>TON WebApp</title>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
 body {
+    margin: 0;
     background: #070b1a;
     color: white;
-    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .top-bar {
-    width: 100%;
     padding: 16px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.balance-container {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
 }
 
-.left-section {
+.left {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -42,42 +35,30 @@ body {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    object-fit: cover;
-    background: linear-gradient(135deg, #1f2a48, #111827);
-    border: 2px solid #7c3aed;
 }
 
-.profile-info {
+.info {
     display: flex;
     flex-direction: column;
 }
 
-.profile-name {
-    font-size: 16px;
+.name {
     font-weight: 600;
 }
 
-.wallet-address {
-    margin-top: 4px;
+.address {
     font-size: 13px;
     color: #8b9bb4;
 }
 
-.connect-btn {
+#connectBtn {
+    background: linear-gradient(135deg,#7c3aed,#6d28d9);
+    border: none;
     padding: 10px 18px;
     border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
     color: white;
-    background: linear-gradient(135deg, #7c3aed, #6d28d9);
-    transition: 0.2s ease;
-}
-
-.connect-btn:active {
-    transform: scale(0.97);
-    opacity: 0.9;
+    font-weight: 600;
+    cursor: pointer;
 }
 </style>
 </head>
@@ -85,56 +66,57 @@ body {
 <body>
 
 <div class="top-bar">
-    <div class="balance-container">
-        <div class="left-section">
-            <img id="avatar" class="avatar" src="" />
-            <div class="profile-info">
-                <div id="username" class="profile-name">Loading...</div>
-                <div id="walletAddress" class="wallet-address">Wallet not connected</div>
-            </div>
+    <div class="left">
+        <img id="avatar" class="avatar"/>
+        <div class="info">
+            <div id="username" class="name"></div>
+            <div id="wallet" class="address">Wallet not connected</div>
         </div>
-
-        <button class="connect-btn" id="connectBtn">Connect Wallet</button>
     </div>
+    <div id="ton-connect"></div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// ===== Получаем данные пользователя =====
 const user = tg.initDataUnsafe?.user;
 
-const avatarEl = document.getElementById("avatar");
-const usernameEl = document.getElementById("username");
-const walletEl = document.getElementById("walletAddress");
+document.getElementById("username").textContent =
+    user?.first_name + " " + (user?.last_name || "");
 
-if (user) {
-    // Имя
-    usernameEl.textContent = `${user.first_name || ''} ${user.last_name || ''}`;
+if(user?.photo_url){
+    document.getElementById("avatar").src = user.photo_url;
+}
 
-    // Аватар
-    if (user.photo_url) {
-        avatarEl.src = user.photo_url;
-    } else {
-        avatarEl.style.display = "none";
+// ===== TON CONNECT =====
+
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: 'https://yourdomain.com/tonconnect-manifest.json',
+    buttonRootId: 'ton-connect'
+});
+
+function shorten(addr){
+    return addr.slice(0,4)+"***"+addr.slice(-4);
+}
+
+tonConnectUI.onStatusChange(async wallet => {
+    if(wallet){
+        const address = wallet.account.address;
+        document.getElementById("wallet").textContent = shorten(address);
+
+        // Отправляем на сервер
+        await fetch("https://yourdomain.com/api/save-wallet", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                telegramInitData: tg.initData,
+                wallet: address
+            })
+        });
     }
-}
-
-// ===== Функция сокращения TON адреса =====
-function shortenAddress(address) {
-    if (!address) return "";
-    return address.slice(0,4) + "***" + address.slice(-4);
-}
-
-// ===== Пример подключения кошелька =====
-// СЮДА потом вставляется TON Connect
-document.getElementById("connectBtn").addEventListener("click", () => {
-
-    // Тестовый адрес (позже заменим на реальный из TON Connect)
-    const fakeAddress = "Th8P9sdjf8234ksdjfKdf2";
-
-    walletEl.textContent = shortenAddress(fakeAddress);
 });
 </script>
 
