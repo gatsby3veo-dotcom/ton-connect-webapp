@@ -10,11 +10,11 @@
 
 <style>
 :root{
-  --bg:#0f1115;
-  --card:#181a20;
-  --cardSoft:#1f222a;
+  --bg:#0b0d12;
+  --card:#151821;
+  --cardSoft:#1c1f29;
   --text:#ffffff;
-  --muted:#9aa0aa;
+  --muted:#8b92a1;
   --blue:linear-gradient(135deg,#4da3ff,#3b82f6);
 }
 
@@ -32,7 +32,7 @@ body{
   align-items:center;
   justify-content:space-between;
   padding:14px 16px;
-  background:#0f1115;
+  background:#0b0d12;
 }
 
 .balance{
@@ -77,6 +77,12 @@ body{
   object-fit:cover;
 }
 
+.right-block{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+}
+
 .wallet-btn{
   background:var(--blue);
   border:none;
@@ -87,26 +93,11 @@ body{
   cursor:pointer;
 }
 
-/* ===== CARD ===== */
-
-.wrap{
-  padding:18px 16px;
-  max-width:560px;
-  margin:0 auto;
-}
-
-.card{
-  background:var(--card);
-  border-radius:18px;
-  padding:16px;
-}
-
-.address{
-  margin-top:12px;
+.wallet-address{
+  margin-top:6px;
+  font-size:12px;
   color:var(--muted);
-  font-size:13px;
   display:none;
-  word-break:break-all;
 }
 </style>
 </head>
@@ -122,17 +113,11 @@ body{
 
   <img id="avatar" class="avatar" />
 
-  <button id="walletBtn" class="wallet-btn">
-    Кошелек
-  </button>
-</div>
-
-<div class="wrap">
-  <div class="card">
-    <div style="font-weight:600;font-size:16px;">
-      TON Wallet
-    </div>
-    <div id="walletAddr" class="address"></div>
+  <div class="right-block">
+    <button id="walletBtn" class="wallet-btn">
+      Кошелек
+    </button>
+    <div id="walletAddr" class="wallet-address"></div>
   </div>
 </div>
 
@@ -160,7 +145,7 @@ const walletAddr = document.getElementById("walletAddr");
 
 function shorten(addr){
   if(!addr) return "";
-  return addr.slice(0,5)+"******"+addr.slice(-5);
+  return addr.slice(0,4)+"******"+addr.slice(-4);
 }
 
 function updateUI(wallet){
@@ -171,6 +156,7 @@ function updateUI(wallet){
   }else{
     walletBtn.textContent = "Кошелек";
     walletAddr.style.display = "none";
+    walletAddr.textContent = "";
   }
 }
 
