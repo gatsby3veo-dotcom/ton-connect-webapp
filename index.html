@@ -12,12 +12,11 @@
 <style>
 :root{
   --bg:#0b0f17;
-  --soft:#161b25;
-  --soft2:#1c2230;
   --text:#ffffff;
   --muted:#8e97a8;
   --blue:linear-gradient(135deg,#4da3ff,#3b82f6);
   --green:linear-gradient(135deg,#22d3a6,#06b6d4);
+  --purple:linear-gradient(135deg,#8b5cf6,#6366f1);
 }
 
 body{
@@ -27,30 +26,29 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
 }
 
-/* ===== TOP WRAPPER ===== */
-
 .top-wrapper{
-  padding:18px 16px 20px;
+  padding:18px 16px 24px;
 }
 
-/* viewers */
+/* ===== VIEWERS ===== */
+
 .viewers{
   display:flex;
   justify-content:center;
   align-items:center;
   gap:6px;
-  color:var(--muted);
   font-size:13px;
-  margin-bottom:14px;
+  color:var(--muted);
+  margin-bottom:16px;
 }
 
 .viewers svg{
   width:16px;
   height:16px;
-  opacity:0.8;
 }
 
-/* topbar */
+/* ===== TOPBAR ===== */
+
 .topbar{
   display:flex;
   align-items:center;
@@ -61,7 +59,7 @@ body{
   display:flex;
   align-items:center;
   gap:8px;
-  background:var(--soft);
+  background:#161b25;
   padding:8px 12px;
   border-radius:14px;
 }
@@ -97,7 +95,6 @@ body{
   height:42px;
   border-radius:50%;
   object-fit:cover;
-  box-shadow:0 0 12px rgba(0,0,0,0.6);
 }
 
 .right-block{
@@ -126,44 +123,58 @@ body{
 /* ===== SEASONS ===== */
 
 .seasons{
-  margin-top:22px;
+  margin-top:26px;
   display:flex;
   gap:14px;
 }
 
 .season-card{
   flex:1;
-  background:var(--soft2);
-  padding:16px;
-  border-radius:18px;
+  padding:18px;
+  border-radius:20px;
   cursor:pointer;
   position:relative;
-  transition:0.25s;
-  border:1px solid transparent;
+  transition:0.3s;
+  overflow:hidden;
+  color:white;
+}
+
+.season1{
+  background:var(--green);
+}
+
+.season2{
+  background:var(--purple);
 }
 
 .season-card:hover{
-  transform:translateY(-2px);
+  transform:translateY(-3px);
 }
 
 /* ACTIVE GLOW */
+
 .season-card.active{
-  background:#1f283a;
-  border:1px solid #2dd4bf;
   box-shadow:
-    0 0 20px rgba(34,211,166,0.35),
-    0 0 40px rgba(34,211,166,0.15);
+    0 0 20px rgba(34,211,166,0.5),
+    0 0 40px rgba(34,211,166,0.25);
+  animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+  0%{box-shadow:0 0 15px rgba(34,211,166,0.3);}
+  50%{box-shadow:0 0 35px rgba(34,211,166,0.7);}
+  100%{box-shadow:0 0 15px rgba(34,211,166,0.3);}
 }
 
 .season-title{
-  font-size:15px;
-  font-weight:600;
+  font-size:16px;
+  font-weight:700;
 }
 
 .season-sub{
   font-size:12px;
-  color:var(--muted);
-  margin-top:4px;
+  margin-top:6px;
+  opacity:0.9;
 }
 </style>
 </head>
@@ -177,7 +188,7 @@ body{
     <svg viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 5C5 5 2 12 2 12s3 7 10 7 10-7 10-7-3-7-10-7zm0 11a4 4 0 110-8 4 4 0 010 8z"/>
     </svg>
-    <span>Watching: 11</span>
+    <span id="viewerCount">Watching: 1</span>
   </div>
 
   <!-- TOPBAR -->
@@ -200,12 +211,12 @@ body{
 
   <!-- SEASONS -->
   <div class="seasons">
-    <div class="season-card active" id="season1">
+    <div class="season-card season1 active" id="season1">
       <div class="season-title">Season 1</div>
-      <div class="season-sub">Active leaderboard</div>
+      <div class="season-sub">Live leaderboard</div>
     </div>
 
-    <div class="season-card" id="season2">
+    <div class="season-card season2" id="season2">
       <div class="season-title">Season 2</div>
       <div class="season-sub">Coming soon</div>
     </div>
@@ -217,25 +228,31 @@ body{
 const tg = window.Telegram?.WebApp;
 if(tg) tg.ready();
 
-const user = tg?.initDataUnsafe?.user;
-const avatar = document.getElementById("avatar");
-if(user?.photo_url){
-  avatar.src = user.photo_url;
-}
+/* ===== SIMPLE REALTIME VIEWERS (DEMO LOGIC) ===== */
 
-/* SWITCH ACTIVE SEASON */
+const viewerEl = document.getElementById("viewerCount");
+
+function updateViewers(){
+  let viewers = parseInt(localStorage.getItem("viewers") || "0");
+  viewers += 1;
+  localStorage.setItem("viewers", viewers);
+  viewerEl.textContent = "Watching: " + viewers;
+}
+updateViewers();
+
+/* ===== SEASON SWITCH ===== */
 
 document.getElementById("season1").onclick = () => {
-  document.getElementById("season1").classList.add("active");
-  document.getElementById("season2").classList.remove("active");
+  season1.classList.add("active");
+  season2.classList.remove("active");
 };
 
 document.getElementById("season2").onclick = () => {
-  document.getElementById("season2").classList.add("active");
-  document.getElementById("season1").classList.remove("active");
+  season2.classList.add("active");
+  season1.classList.remove("active");
 };
 
-/* TON CONNECT */
+/* ===== TON CONNECT ===== */
 
 const MANIFEST_URL = "https://ton-connect-webapp.vercel.app/tonconnect-manifest.json";
 
@@ -271,13 +288,13 @@ function updateUI(wallet){
   }
 }
 
-walletBtn.addEventListener("click", async ()=>{
+walletBtn.onclick = async ()=>{
   if(tonConnectUI.wallet){
     await tonConnectUI.disconnect();
   }else{
     await tonConnectUI.connectWallet();
   }
-});
+};
 
 tonConnectUI.onStatusChange(updateUI);
 updateUI(tonConnectUI.wallet);
